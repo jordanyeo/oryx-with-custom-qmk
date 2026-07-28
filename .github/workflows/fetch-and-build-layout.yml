@@ -89,6 +89,12 @@ jobs:
           git commit -m "✨(qmk): Update firmware" || echo "No QMK change"
           git push
 
+      - name: Apply custom QMK module patches
+        run: |
+          git -C qmk_firmware/modules/zsa apply --check "$GITHUB_WORKSPACE/patches/navigator-horizontal-scroll-divider.patch"
+          git -C qmk_firmware/modules/zsa apply "$GITHUB_WORKSPACE/patches/navigator-horizontal-scroll-divider.patch"
+          echo "Applied custom Navigator horizontal divider patch"
+
       - name: Build qmk docker image
         run: docker build -t qmk .
 

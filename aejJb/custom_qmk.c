@@ -4,7 +4,6 @@
 #include "automouse.h"
 
 #define THUMBS_UP_CODE_POINT 0x1F44D
-#define NAVIGATOR_HORIZONTAL_SCROLL_MULTIPLIER 4
 
 const key_override_t delete_key_override = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
 
@@ -12,13 +11,6 @@ const key_override_t *key_overrides[] = {
     &delete_key_override,
     NULL,
 };
-
-report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
-    // ZSA's Navigator module uses one sensitivity setting for both axes.
-    // Preserve the current vertical feel while making horizontal scroll useful.
-    mouse_report.h *= NAVIGATOR_HORIZONTAL_SCROLL_MULTIPLIER;
-    return mouse_report;
-}
 
 static bool keeps_automouse_layer_active(uint16_t keycode) {
     switch (keycode) {

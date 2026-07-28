@@ -39,5 +39,9 @@
 #undef AUTOMOUSE_TIMEOUT
 #define AUTOMOUSE_TIMEOUT 65535
 
+// The patched Navigator module reads a separate horizontal divider. A smaller
+// value is more sensitive; vertical scrolling keeps Oryx's divider of 50.
+#define NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER 5
+
 // QMK's Unicode sender should always emit macOS Unicode Hex Input sequences.
 #define UNICODE_SELECTED_MODES UNICODE_MODE_MACOS

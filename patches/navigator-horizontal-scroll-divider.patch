@@ -1,0 +1,23 @@
+diff --git a/navigator_trackball/navigator.c b/navigator_trackball/navigator.c
+--- a/navigator_trackball/navigator.c
++++ b/navigator_trackball/navigator.c
+@@ -27,6 +27,10 @@
+ #include "quantum.h"
+ #include "navigator.h"
+ 
++#ifndef NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER
++#    define NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER NAVIGATOR_SCROLL_DIVIDER
++#endif
++
+ #if _NAVIGATOR_ROTATION != 0 && _NAVIGATOR_ROTATION != 90 && \
+     _NAVIGATOR_ROTATION != 180 && _NAVIGATOR_ROTATION != 270
+ #define _NT_ROT_RAD (_NAVIGATOR_ROTATION * 3.14159265358979f / 180.0f)
+@@ -123,7 +127,7 @@ report_mouse_t pointing_device_task_navigator_trackball(report_mouse_t mouse_rep
+ #endif
+     if (scroll_active) {
+         // Accumulate scroll movement
+-        scroll_accumulated_h += (float)mouse_report.x / NAVIGATOR_SCROLL_DIVIDER;
++        scroll_accumulated_h += (float)mouse_report.x / NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER;
+         scroll_accumulated_v += (float)mouse_report.y / NAVIGATOR_SCROLL_DIVIDER;
+ 
+         // Vertical-only mode: discard any horizontal movement so it never

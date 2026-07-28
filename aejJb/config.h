@@ -39,13 +39,12 @@
 #undef AUTOMOUSE_TIMEOUT
 #define AUTOMOUSE_TIMEOUT 65535
 
-// Trackpad-like Navigator scrolling for macOS: fractional high-resolution
-// reports, a wider wheel field, and dominant-axis locking for Arc and Excel.
+// Arc and Excel handle mixed-axis wheel reports poorly. Keep ZSA's normal
+// wheel resolution, but use independent horizontal sensitivity and lock each
+// gesture to its dominant axis.
 #define NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER 5
 #define NAVIGATOR_SCROLL_AXIS_LOCK_TIMEOUT 80
-#define POINTING_DEVICE_HIRES_SCROLL_ENABLE
-#define POINTING_DEVICE_HIRES_SCROLL_MULTIPLIER 120
-#define POINTING_DEVICE_TASK_THROTTLE_MS 2
+#undef POINTING_DEVICE_HIRES_SCROLL_ENABLE
 #define WHEEL_EXTENDED_REPORT
 
 // QMK's Unicode sender should always emit macOS Unicode Hex Input sequences.

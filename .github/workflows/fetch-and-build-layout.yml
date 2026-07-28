@@ -93,7 +93,7 @@ jobs:
         run: |
           git -C qmk_firmware/modules/zsa apply --check "$GITHUB_WORKSPACE/patches/navigator-smooth-scroll.patch"
           git -C qmk_firmware/modules/zsa apply "$GITHUB_WORKSPACE/patches/navigator-smooth-scroll.patch"
-          echo "Applied custom Navigator high-resolution axis-lock patch"
+          echo "Applied custom Navigator axis-lock and horizontal-scroll patch"
 
       - name: Build qmk docker image
         run: docker build -t qmk .

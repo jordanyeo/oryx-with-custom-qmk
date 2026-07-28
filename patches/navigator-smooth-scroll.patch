@@ -1,0 +1,137 @@
+diff --git a/navigator_trackball/navigator.c b/navigator_trackball/navigator.c
+index ea64f11..69912c8 100644
+--- a/navigator_trackball/navigator.c
++++ b/navigator_trackball/navigator.c
+@@ -30,6 +30,18 @@
+ #include "quantum.h"
+ #include "navigator.h"
+ 
++#ifndef NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER
++#    define NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER NAVIGATOR_SCROLL_DIVIDER
++#endif
++
++#ifndef NAVIGATOR_SCROLL_AXIS_LOCK_TIMEOUT
++#    define NAVIGATOR_SCROLL_AXIS_LOCK_TIMEOUT 80
++#endif
++
++#if defined(POINTING_DEVICE_HIRES_SCROLL_ENABLE) && !defined(WHEEL_EXTENDED_REPORT)
++#    error "Navigator high-resolution scrolling requires WHEEL_EXTENDED_REPORT"
++#endif
++
+ #if _NAVIGATOR_ROTATION != 0 && _NAVIGATOR_ROTATION != 90 && \
+     _NAVIGATOR_ROTATION != 180 && _NAVIGATOR_ROTATION != 270
+ #define _NT_ROT_RAD (_NAVIGATOR_ROTATION * 3.14159265358979f / 180.0f)
+@@ -47,6 +59,27 @@ bool navigator_turbo = false;
+ bool navigator_aim = false;
+ static bool navigator_speed_suppressed = false;
+ 
++typedef enum {
++    NAVIGATOR_SCROLL_AXIS_NONE,
++    NAVIGATOR_SCROLL_AXIS_HORIZONTAL,
++    NAVIGATOR_SCROLL_AXIS_VERTICAL,
++} navigator_scroll_axis_t;
++
++static navigator_scroll_axis_t navigator_scroll_axis = NAVIGATOR_SCROLL_AXIS_NONE;
++static uint16_t navigator_scroll_last_motion = 0;
++
++#ifdef POINTING_DEVICE_HIRES_SCROLL_ENABLE
++static int32_t clamp_scroll_report(int32_t value) {
++    if (value < MOUSE_REPORT_HV_MIN) {
++        return MOUSE_REPORT_HV_MIN;
++    }
++    if (value > MOUSE_REPORT_HV_MAX) {
++        return MOUSE_REPORT_HV_MAX;
++    }
++    return value;
++}
++#endif
++
+ #ifdef _NAVIGATOR_AIM_HAS_LAYERS
+ static const uint8_t navigator_aim_layers[] = NAVIGATOR_AIM_LAYERS;
+ #define _NAVIGATOR_AIM_LAYER_COUNT (sizeof(navigator_aim_layers) / sizeof(navigator_aim_layers[0]))
+@@ -134,16 +167,65 @@ report_mouse_t pointing_device_task_navigator_trackball(report_mouse_t mouse_rep
+     scroll_active = true;
+ #endif
+     if (scroll_active) {
+-        // Accumulate scroll movement
+-        scroll_accumulated_h += (float)mouse_report.x / NAVIGATOR_SCROLL_DIVIDER;
+-        scroll_accumulated_v += (float)mouse_report.y / NAVIGATOR_SCROLL_DIVIDER;
++        mouse_xy_report_t scroll_x = mouse_report.x;
++        mouse_xy_report_t scroll_y = mouse_report.y;
+ 
+-        // Vertical-only mode: discard any horizontal movement so it never
+-        // accumulates or produces a horizontal scroll event.
++        // Arc and Excel smooth simultaneous X/Y wheel reports poorly. Lock a
++        // gesture to its dominant axis until the trackball rests briefly.
+         if (scroll_vertical_only) {
++            navigator_scroll_axis = NAVIGATOR_SCROLL_AXIS_VERTICAL;
++        } else if (scroll_x != 0 || scroll_y != 0) {
++            if (timer_elapsed(navigator_scroll_last_motion) > NAVIGATOR_SCROLL_AXIS_LOCK_TIMEOUT) {
++                navigator_scroll_axis = NAVIGATOR_SCROLL_AXIS_NONE;
++            }
++            if (navigator_scroll_axis == NAVIGATOR_SCROLL_AXIS_NONE) {
++                int32_t abs_x = scroll_x < 0 ? -(int32_t)scroll_x : (int32_t)scroll_x;
++                int32_t abs_y = scroll_y < 0 ? -(int32_t)scroll_y : (int32_t)scroll_y;
++                navigator_scroll_axis =
++                    abs_x >= abs_y ? NAVIGATOR_SCROLL_AXIS_HORIZONTAL : NAVIGATOR_SCROLL_AXIS_VERTICAL;
++            }
++            navigator_scroll_last_motion = timer_read();
++        }
++
++        if (navigator_scroll_axis == NAVIGATOR_SCROLL_AXIS_HORIZONTAL) {
++            scroll_y = 0;
++            scroll_accumulated_v = 0.0f;
++        } else if (navigator_scroll_axis == NAVIGATOR_SCROLL_AXIS_VERTICAL) {
++            scroll_x = 0;
+             scroll_accumulated_h = 0.0f;
+         }
+ 
++        // Accumulate scroll movement
++        scroll_accumulated_h += (float)scroll_x / NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER;
++        scroll_accumulated_v += (float)scroll_y / NAVIGATOR_SCROLL_DIVIDER;
++
++#ifdef POINTING_DEVICE_HIRES_SCROLL_ENABLE
++        // Emit fractional wheel ticks directly. The HID resolution multiplier
++        // makes these continuous pixel-like events instead of coarse notches.
++        float resolution = (float)pointing_device_get_hires_scroll_resolution();
++        int32_t scroll_h = clamp_scroll_report((int32_t)(scroll_accumulated_h * resolution));
++        int32_t scroll_v = clamp_scroll_report((int32_t)(scroll_accumulated_v * resolution));
++
++        if (scroll_h != 0) {
++            scroll_accumulated_h -= (float)scroll_h / resolution;
++        }
++        if (scroll_v != 0) {
++            scroll_accumulated_v -= (float)scroll_v / resolution;
++        }
++
++#    ifdef NAVIGATOR_SCROLL_INVERT_X
++        mouse_report.h = (mouse_hv_report_t)scroll_h;
++#    else
++        mouse_report.h = (mouse_hv_report_t)-scroll_h;
++#    endif
++
++#    ifdef NAVIGATOR_SCROLL_INVERT_Y
++        mouse_report.v = (mouse_hv_report_t)-scroll_v;
++#    else
++        mouse_report.v = (mouse_hv_report_t)scroll_v;
++#    endif
++#else
++
+         // This allows fractional accumulation to build up before triggering scroll
+         float abs_h = (scroll_accumulated_h < 0) ? -scroll_accumulated_h : scroll_accumulated_h;
+         float abs_v = (scroll_accumulated_v < 0) ? -scroll_accumulated_v : scroll_accumulated_v;
+@@ -210,9 +292,14 @@ report_mouse_t pointing_device_task_navigator_trackball(report_mouse_t mouse_rep
+         } else {
+             idle_counter_v = 0;
+         }
++#endif
+ 
+         mouse_report.x = 0;
+         mouse_report.y = 0;
++    } else {
++        navigator_scroll_axis = NAVIGATOR_SCROLL_AXIS_NONE;
++        scroll_accumulated_h = 0.0f;
++        scroll_accumulated_v = 0.0f;
+     }
+     return mouse_report;
+ }

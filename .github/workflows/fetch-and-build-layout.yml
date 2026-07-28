@@ -91,9 +91,9 @@ jobs:
 
       - name: Apply custom QMK module patches
         run: |
-          git -C qmk_firmware/modules/zsa apply --check "$GITHUB_WORKSPACE/patches/navigator-horizontal-scroll-divider.patch"
-          git -C qmk_firmware/modules/zsa apply "$GITHUB_WORKSPACE/patches/navigator-horizontal-scroll-divider.patch"
-          echo "Applied custom Navigator horizontal divider patch"
+          git -C qmk_firmware/modules/zsa apply --check "$GITHUB_WORKSPACE/patches/navigator-smooth-scroll.patch"
+          git -C qmk_firmware/modules/zsa apply "$GITHUB_WORKSPACE/patches/navigator-smooth-scroll.patch"
+          echo "Applied custom Navigator high-resolution axis-lock patch"
 
       - name: Build qmk docker image
         run: docker build -t qmk .

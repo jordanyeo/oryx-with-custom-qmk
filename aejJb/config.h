@@ -39,9 +39,14 @@
 #undef AUTOMOUSE_TIMEOUT
 #define AUTOMOUSE_TIMEOUT 65535
 
-// The patched Navigator module reads a separate horizontal divider. A smaller
-// value is more sensitive; vertical scrolling keeps Oryx's divider of 50.
+// Trackpad-like Navigator scrolling for macOS: fractional high-resolution
+// reports, a wider wheel field, and dominant-axis locking for Arc and Excel.
 #define NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER 5
+#define NAVIGATOR_SCROLL_AXIS_LOCK_TIMEOUT 80
+#define POINTING_DEVICE_HIRES_SCROLL_ENABLE
+#define POINTING_DEVICE_HIRES_SCROLL_MULTIPLIER 120
+#define POINTING_DEVICE_TASK_THROTTLE_MS 2
+#define WHEEL_EXTENDED_REPORT
 
 // QMK's Unicode sender should always emit macOS Unicode Hex Input sequences.
 #define UNICODE_SELECTED_MODES UNICODE_MODE_MACOS

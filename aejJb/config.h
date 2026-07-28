@@ -40,9 +40,9 @@
 #define AUTOMOUSE_TIMEOUT 65535
 
 // Arc and Excel handle mixed-axis wheel reports poorly. Keep ZSA's normal
-// wheel resolution, but use independent horizontal sensitivity and lock each
-// gesture to its dominant axis.
-#define NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER 5
+// wheel resolution, make horizontal follow Oryx's vertical sensitivity, and
+// lock each gesture to its dominant axis.
+#define NAVIGATOR_HORIZONTAL_SCROLL_DIVIDER NAVIGATOR_SCROLL_DIVIDER
 #define NAVIGATOR_SCROLL_AXIS_LOCK_TIMEOUT 80
 #undef POINTING_DEVICE_HIRES_SCROLL_ENABLE
 #define WHEEL_EXTENDED_REPORT

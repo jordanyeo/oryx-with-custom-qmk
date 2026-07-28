@@ -3,6 +3,15 @@
 #include QMK_KEYBOARD_H
 #include "automouse.h"
 
+#define THUMBS_UP_CODE_POINT 0x1F44D
+
+const key_override_t delete_key_override = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
+
+const key_override_t *key_overrides[] = {
+    &delete_key_override,
+    NULL,
+};
+
 static bool keeps_automouse_layer_active(uint16_t keycode) {
     switch (keycode) {
         case KC_MS_BTN1:
@@ -51,6 +60,14 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
         if (!is_automouse_toggle_key(keycode)) {
             process_record_automouse(keycode, record);
         }
+    }
+
+    // Keep KC_F13 in Oryx as a durable placeholder, but emit 👍 from QMK.
+    if (keycode == KC_F13) {
+        if (record->event.pressed) {
+            register_unicode(THUMBS_UP_CODE_POINT);
+        }
+        return false;
     }
 
     return true;

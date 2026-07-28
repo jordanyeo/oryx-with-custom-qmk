@@ -34,7 +34,10 @@
 #define AUTOMOUSE_SCROLL_THRESHOLD AUTOMOUSE_THRESHOLD / NAVIGATOR_SCROLL_DIVIDER
 #define RGB_MATRIX_STARTUP_SPD 60
 
-// Custom QMK: selective automouse dismissal is handled in
-// selective_automouse.c, so disable the module's unfiltered post-key timeout.
+// Custom QMK: selective automouse dismissal is handled in custom_qmk.c,
+// so disable the module's unfiltered post-key timeout.
 #undef AUTOMOUSE_TIMEOUT
 #define AUTOMOUSE_TIMEOUT 65535
+
+// QMK's Unicode sender should always emit macOS Unicode Hex Input sequences.
+#define UNICODE_SELECTED_MODES UNICODE_MODE_MACOS

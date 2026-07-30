@@ -2,6 +2,8 @@
 
 #include QMK_KEYBOARD_H
 #include "automouse.h"
+#include "navigator.h"
+#include "oryx.h"
 
 #define THUMBS_UP_CODE_POINT 0x1F44D
 
@@ -11,6 +13,24 @@ const key_override_t *key_overrides[] = {
     &delete_key_override,
     NULL,
 };
+
+bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+    (void)led_min;
+    (void)led_max;
+
+    if (!rawhid_state.rgb_control &&
+        !keyboard_config.disable_layer_led &&
+        get_highest_layer(layer_state) == AUTOMOUSE_LAYER &&
+        set_scrolling) {
+        HSV green = {HSV_GREEN};
+        green.v   = rgb_matrix_config.hsv.v;
+
+        RGB rgb = hsv_to_rgb(green);
+        rgb_matrix_set_color_all(rgb.r, rgb.g, rgb.b);
+    }
+
+    return true;
+}
 
 static bool keeps_automouse_layer_active(uint16_t keycode) {
     switch (keycode) {
